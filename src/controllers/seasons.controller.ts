@@ -70,4 +70,24 @@ export class SeasonsController {
     delete anime.seasons;
     return new SeasonInfo({anime, season});
   }
+
+  @get('/anime/{shortName}/season/{seasonNumber}/playlist')
+  async getPlaylist(
+    @param.path.string('shortName') shortName: string,
+    @param.path.integer('seasonNumber') seasonNumber: number,
+  ): Promise<string> {
+    const data = await this.findByNumber(shortName, seasonNumber);
+    const file = [
+      '#EXTM3U',
+      '#PLAYLIST:' + data.anime.displayName + ' - ' + data.season.displayName,
+    ];
+
+    data.season.episodes.forEach(episode => {
+      if (!episode.available || !episode.resourceUrl) return;
+      file.push('#EXTINF:0,' + episode.displayName);
+      file.push(episode.resourceUrl);
+    });
+
+    return file.join('\n');
+  }
 }
